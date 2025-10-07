@@ -26,6 +26,8 @@ async function apiRequest<T>(
 ): Promise<T> {
   const apiKey = await getApiKey();
 
+  console.log('[OpenAI Client] Making request:', { endpoint, method: options.method || 'POST' });
+
   const response = await fetch('/api/openai', {
     method: 'POST',
     headers: {
@@ -39,12 +41,20 @@ async function apiRequest<T>(
     }),
   });
 
+  console.log('[OpenAI Client] Response status:', response.status);
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'API request failed' }));
-    throw new Error(error.error || `API request failed: ${response.status}`);
+    console.error('[OpenAI Client] Error:', error);
+
+    // Extract the most useful error message
+    const errorMessage = error.error || error.message || error.details?.error?.message || `API request failed: ${response.status}`;
+    throw new Error(errorMessage);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('[OpenAI Client] Success:', data);
+  return data;
 }
 
 /**

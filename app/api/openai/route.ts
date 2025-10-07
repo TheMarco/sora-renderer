@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { endpoint, method = 'POST', apiKey, data } = body;
 
+    console.log('[API Proxy] Request:', { endpoint, method, hasApiKey: !!apiKey, data });
+
     if (!apiKey) {
       return NextResponse.json({ error: 'API key is required' }, { status: 401 });
     }
@@ -16,6 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const url = `${OPENAI_API_BASE}${endpoint}`;
+    console.log('[API Proxy] Calling:', url);
 
     const response = await fetch(url, {
       method,
@@ -26,9 +29,21 @@ export async function POST(request: NextRequest) {
       body: method !== 'GET' ? JSON.stringify(data) : undefined,
     });
 
-    const responseData = await response.json();
+    console.log('[API Proxy] Response status:', response.status);
+
+    // Try to parse response as JSON
+    let responseData;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      responseData = await response.json();
+    } else {
+      const text = await response.text();
+      console.log('[API Proxy] Non-JSON response:', text);
+      responseData = { error: { message: text || 'Non-JSON response from API' } };
+    }
 
     if (!response.ok) {
+      console.error('[API Proxy] Error response:', responseData);
       return NextResponse.json(
         { error: responseData.error?.message || 'API request failed', details: responseData },
         { status: response.status }
@@ -37,9 +52,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(responseData);
   } catch (error) {
-    console.error('API proxy error:', error);
+    console.error('[API Proxy] Exception:', error);
     return NextResponse.json(
-      { error: 'Internal server error', message: (error as Error).message },
+      {
+        error: 'Internal server error',
+        message: (error as Error).message,
+        stack: process.env.NODE_ENV === 'development' ? (error as Error).stack : undefined
+      },
       { status: 500 }
     );
   }
