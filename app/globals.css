@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 10 10 10;
+    --foreground: 255 255 255;
+  }
+
+  * {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    background-color: #0a0a0a;
+    color: #ffffff;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-hover rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-surface-active;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-border-focus ring-offset-2 ring-offset-background;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Glass card effect */
+  .glass-card {
+    @apply bg-surface backdrop-blur-md border border-border rounded-lg;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-200 hover:bg-surface-hover hover:border-border-focus;
+  }
+
+  /* Button styles */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-hover active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply btn bg-surface hover:bg-surface-hover border border-border;
+  }
+
+  .btn-ghost {
+    @apply btn hover:bg-surface-hover;
+  }
+
+  .btn-danger {
+    @apply btn bg-error text-white hover:bg-red-600 active:scale-95;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full px-4 py-2 bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:border-border-focus focus:ring-1 focus:ring-border-focus transition-colors;
+  }
+
+  .textarea {
+    @apply input resize-none;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge bg-success/20 text-success border border-success/30;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning/20 text-warning border border-warning/30;
+  }
+
+  .badge-error {
+    @apply badge bg-error/20 text-error border border-error/30;
+  }
+
+  .badge-info {
+    @apply badge bg-accent/20 text-accent-light border border-accent/30;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
