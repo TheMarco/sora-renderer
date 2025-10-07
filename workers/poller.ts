@@ -27,6 +27,9 @@ self.addEventListener('message', (event: MessageEvent) => {
     case 'STOP_ALL':
       stopAllPolling();
       break;
+    case 'POLL_RESPONSE':
+      handlePollResponse(payload);
+      break;
     default:
       console.warn('Unknown message type:', type);
   }
@@ -102,15 +105,6 @@ async function pollJob(jobId: string) {
     scheduleNextPoll(jobId);
   }
 }
-
-// Handle responses from main thread
-self.addEventListener('message', (event: MessageEvent) => {
-  const { type, payload } = event.data;
-
-  if (type === 'POLL_RESPONSE') {
-    handlePollResponse(payload);
-  }
-});
 
 function handlePollResponse(payload: any) {
   const { jobId, status, assets, error } = payload;

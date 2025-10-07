@@ -113,40 +113,55 @@ export function usePollingWorker() {
       updatedAt: Date.now(),
     });
 
-    // Download assets if succeeded
-    if (payload.status === 'succeeded' && payload.assets) {
-      for (const asset of payload.assets) {
-        try {
-          const blob = await downloadAsset(asset.url);
-          const assetId = uuidv4();
-
-          const assetRecord = {
-            id: assetId,
-            kind: 'video' as const,
-            mime: asset.mime,
-            name: `video-${Date.now()}.mp4`,
-            bytes: blob.size,
-            blob,
-            jobId: payload.jobId,
-            createdAt: Date.now(),
-          };
-
-          // Save to DB
-          await db.assets.add(assetRecord);
-
-          // Update store
-          addAsset(assetRecord);
-
-          // Generate thumbnail
-          if (thumbnailWorker) {
-            thumbnailWorker.postMessage({
-              type: 'GENERATE_THUMBNAIL',
-              payload: { videoId: assetId, videoBlob: blob },
-            });
-          }
-        } catch (error) {
-          console.error('Failed to download asset:', error);
+    // Download video if succeeded
+    if (payload.status === 'succeeded') {
+      try {
+        // Get the job to find the API job ID
+        const job = await db.jobs.get(payload.jobId);
+        if (!job || !job.apiJobId) {
+          console.error('[useWorkers] Cannot download video: missing API job ID');
+          return;
         }
+
+        console.log(`[useWorkers] Downloading video for job ${job.apiJobId}`);
+
+        // Download video content from OpenAI
+        const videoBlob = await downloadAsset(`/videos/${job.apiJobId}/content?variant=video`);
+        const assetId = uuidv4();
+
+        const assetRecord = {
+          id: assetId,
+          kind: 'video' as const,
+          mime: 'video/mp4',
+          name: `video-${Date.now()}.mp4`,
+          bytes: videoBlob.size,
+          blob: videoBlob,
+          jobId: payload.jobId,
+          createdAt: Date.now(),
+        };
+
+        // Save to DB
+        await db.assets.add(assetRecord);
+
+        // Update store
+        addAsset(assetRecord);
+
+        console.log(`[useWorkers] Video downloaded successfully: ${assetId}`);
+
+        // Generate thumbnail
+        if (thumbnailWorker) {
+          thumbnailWorker.postMessage({
+            type: 'GENERATE_THUMBNAIL',
+            payload: { videoId: assetId, videoBlob: videoBlob },
+          });
+        }
+      } catch (error) {
+        console.error('[useWorkers] Failed to download video:', error);
+        // Update job with error
+        await db.jobs.update(payload.jobId, {
+          error: `Failed to download video: ${(error as Error).message}`,
+          updatedAt: Date.now(),
+        });
       }
     }
   };

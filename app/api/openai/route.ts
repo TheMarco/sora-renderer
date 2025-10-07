@@ -31,9 +31,23 @@ export async function POST(request: NextRequest) {
 
     console.log('[API Proxy] Response status:', response.status);
 
-    // Try to parse response as JSON
-    let responseData;
     const contentType = response.headers.get('content-type');
+
+    // Handle binary responses (video/image downloads)
+    if (contentType && (contentType.includes('video/') || contentType.includes('image/'))) {
+      console.log('[API Proxy] Returning binary response:', contentType);
+      const buffer = await response.arrayBuffer();
+      return new NextResponse(buffer, {
+        status: response.status,
+        headers: {
+          'Content-Type': contentType,
+          'Content-Length': buffer.byteLength.toString(),
+        },
+      });
+    }
+
+    // Handle JSON responses
+    let responseData;
     if (contentType && contentType.includes('application/json')) {
       responseData = await response.json();
     } else {

@@ -134,6 +134,7 @@ export async function getVideoJob(jobId: string): Promise<VideoJobResponse> {
 function mapApiStatus(apiStatus: string): JobStatus {
   const statusMap: Record<string, JobStatus> = {
     'queued': 'queued',
+    'in_progress': 'running',  // OpenAI uses 'in_progress'
     'processing': 'running',
     'running': 'running',
     'succeeded': 'succeeded',
@@ -144,20 +145,46 @@ function mapApiStatus(apiStatus: string): JobStatus {
     'cancelled': 'canceled',
   };
 
-  return statusMap[apiStatus.toLowerCase()] || 'failed';
+  const mapped = statusMap[apiStatus.toLowerCase()];
+  if (!mapped) {
+    console.warn(`[OpenAI] Unknown status: ${apiStatus}, defaulting to 'failed'`);
+  }
+  return mapped || 'failed';
 }
 
 /**
- * Download a video file from a URL
+ * Download a video file from OpenAI
+ * @param endpoint - The API endpoint (e.g., '/videos/{id}/content?variant=video')
  */
-export async function downloadAsset(url: string): Promise<Blob> {
-  const response = await fetch(url);
+export async function downloadAsset(endpoint: string): Promise<Blob> {
+  console.log(`[OpenAI Client] Downloading asset from: ${endpoint}`);
 
-  if (!response.ok) {
-    throw new Error(`Failed to download asset: ${response.status}`);
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    throw new Error('API key not found');
   }
 
-  return response.blob();
+  const response = await fetch('/api/openai', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      endpoint,
+      method: 'GET',
+      apiKey,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('[OpenAI Client] Download failed:', error);
+    throw new Error(error.error || 'Failed to download asset');
+  }
+
+  const blob = await response.blob();
+  console.log(`[OpenAI Client] Downloaded ${blob.size} bytes`);
+  return blob;
 }
 
 /**
