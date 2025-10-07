@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -24,7 +24,16 @@ export default function QueuePage() {
 
   const loadJobs = async () => {
     const allJobs = await db.jobs.orderBy('createdAt').reverse().toArray();
-    setJobs(allJobs);
+
+    // Only update if jobs actually changed (avoid unnecessary re-renders)
+    setJobs((prevJobs) => {
+      if (JSON.stringify(prevJobs.map(j => ({ id: j.id, status: j.status, updatedAt: j.updatedAt }))) ===
+          JSON.stringify(allJobs.map(j => ({ id: j.id, status: j.status, updatedAt: j.updatedAt })))) {
+        return prevJobs;
+      }
+      return allJobs;
+    });
+
     setIsLoading(false);
   };
 
@@ -69,7 +78,13 @@ export default function QueuePage() {
   }
 
   const activeJobs = jobs.filter((j) => j.status === 'queued' || j.status === 'running');
-  const completedJobs = jobs.filter((j) => j.status === 'succeeded');
+
+  // Only show completed jobs if there are no active jobs
+  // (once user starts a new render, completed ones move to Library only)
+  const completedJobs = activeJobs.length === 0
+    ? jobs.filter((j) => j.status === 'succeeded')
+    : [];
+
   const failedJobs = jobs.filter(
     (j) => j.status === 'failed' || j.status === 'blocked' || j.status === 'canceled'
   );
@@ -115,7 +130,7 @@ export default function QueuePage() {
                 <h2 className="text-lg font-semibold mb-3 text-text-secondary">Active</h2>
                 <div className="space-y-3">
                   {activeJobs.map((job) => (
-                    <JobCard
+                    <MemoizedJobCard
                       key={job.id}
                       job={job}
                       onCancel={handleCancel}
@@ -133,7 +148,7 @@ export default function QueuePage() {
                 <h2 className="text-lg font-semibold mb-3 text-text-secondary">Completed</h2>
                 <div className="space-y-3">
                   {completedJobs.map((job) => (
-                    <JobCard
+                    <MemoizedJobCard
                       key={job.id}
                       job={job}
                       onCancel={handleCancel}
@@ -151,7 +166,7 @@ export default function QueuePage() {
                 <h2 className="text-lg font-semibold mb-3 text-text-secondary">Failed</h2>
                 <div className="space-y-3">
                   {failedJobs.map((job) => (
-                    <JobCard
+                    <MemoizedJobCard
                       key={job.id}
                       job={job}
                       onCancel={handleCancel}
@@ -182,6 +197,7 @@ function JobCard({
 }) {
   const [isChecking, setIsChecking] = useState(false);
   const [videoAsset, setVideoAsset] = useState<Asset | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const isActive = job.status === 'queued' || job.status === 'running';
   const isFailed = job.status === 'failed' || job.status === 'blocked';
@@ -195,9 +211,24 @@ function JobCard({
         const video = assets.find(a => a.kind === 'video');
         if (video) {
           setVideoAsset(video);
+          // Create blob URL
+          const url = URL.createObjectURL(video.blob);
+          setVideoUrl(url);
+
+          // Cleanup function to revoke blob URL
+          return () => {
+            URL.revokeObjectURL(url);
+          };
         }
       };
       loadAsset();
+    } else {
+      // Clear video when job is not complete
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl);
+        setVideoUrl(null);
+      }
+      setVideoAsset(null);
     }
   }, [isComplete, job.id]);
 
@@ -278,15 +309,18 @@ function JobCard({
       )}
 
       {/* Show video player for completed jobs */}
-      {isComplete && videoAsset && (
+      {isComplete && videoAsset && videoUrl && (
         <div className="mt-4">
-          <video
-            src={URL.createObjectURL(videoAsset.blob)}
-            controls
-            className="w-full rounded-lg"
-            autoPlay
-            loop
-          />
+          <div className="flex items-center justify-center bg-black rounded-lg max-h-[60vh]">
+            <video
+              key={videoAsset.id} // Use key to prevent unnecessary re-renders
+              src={videoUrl}
+              controls
+              className="max-w-full max-h-[60vh] rounded-lg"
+              autoPlay
+              loop
+            />
+          </div>
           <div className="mt-2 flex items-center justify-between text-xs text-text-tertiary">
             <span>{videoAsset.name}</span>
             <span>{(videoAsset.bytes / 1024 / 1024).toFixed(2)} MB</span>
@@ -297,3 +331,15 @@ function JobCard({
   );
 }
 
+// Memoize JobCard to prevent unnecessary re-renders that restart videos
+const MemoizedJobCard = memo(JobCard, (prevProps, nextProps) => {
+  // Only re-render if job status, updatedAt, or id changes
+  return (
+    prevProps.job.id === nextProps.job.id &&
+    prevProps.job.status === nextProps.job.status &&
+    prevProps.job.updatedAt === nextProps.job.updatedAt &&
+    prevProps.job.error === nextProps.job.error
+  );
+});
+
+MemoizedJobCard.displayName = 'JobCard';

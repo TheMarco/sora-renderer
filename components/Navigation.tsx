@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -13,7 +12,6 @@ const navItems = [
 
 export function Navigation() {
   const pathname = usePathname();
-  const setSettingsOpen = useAppStore((state) => state.setSettingsOpen);
 
   return (
     <nav className="glass-card sticky top-0 z-50 border-b">
@@ -48,14 +46,19 @@ export function Navigation() {
               );
             })}
 
-            {/* Settings Button */}
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="px-4 py-2 rounded-lg font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-all duration-200"
+            {/* Settings Link */}
+            <Link
+              href="/settings"
+              className={cn(
+                'px-4 py-2 rounded-lg font-medium transition-all duration-200',
+                'hover:bg-surface-hover',
+                pathname === '/settings' && 'bg-surface text-text-primary',
+                pathname !== '/settings' && 'text-text-secondary'
+              )}
               aria-label="Settings"
             >
               <span className="text-xl">⚙️</span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

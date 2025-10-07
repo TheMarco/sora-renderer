@@ -11,13 +11,13 @@ export const MODELS: Array<{
     id: 'sora-2',
     name: 'Sora 2',
     description: 'Standard quality video generation',
-    maxDuration: 20,
+    maxDuration: 12,
   },
   {
     id: 'sora-2-pro',
     name: 'Sora 2 Pro',
     description: 'Enhanced quality with higher resolutions',
-    maxDuration: 20,
+    maxDuration: 12,
   },
 ];
 

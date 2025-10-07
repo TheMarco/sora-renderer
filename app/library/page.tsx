@@ -259,7 +259,13 @@ function VideoDetail({
   return (
     <div className="space-y-4">
       {/* Video Player */}
-      <video src={videoUrl} controls className="w-full rounded-lg bg-black" />
+      <div className="flex items-center justify-center bg-black rounded-lg max-h-[70vh]">
+        <video
+          src={videoUrl}
+          controls
+          className="max-w-full max-h-[70vh] rounded-lg"
+        />
+      </div>
 
       {/* Metadata */}
       {job && (
