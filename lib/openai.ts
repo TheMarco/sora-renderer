@@ -87,19 +87,54 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
 export async function createVideoJob(
   params: CreateVideoJobParams
 ): Promise<{ jobId: string }> {
+  const apiKey = await getApiKey();
+
+  // If there's an image, use multipart/form-data
+  if (params.image) {
+    const formData = new FormData();
+    formData.append('endpoint', '/videos');
+    formData.append('apiKey', apiKey);
+    formData.append('method', 'POST');
+    formData.append('model', params.model);
+    formData.append('prompt', params.prompt);
+    formData.append('size', params.resolution);
+    formData.append('seconds', params.duration.toString());
+
+    // Convert base64 image back to File/Blob
+    const base64Data = params.image.data.split(',')[1] || params.image.data;
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: params.image.mime_type });
+    const file = new File([blob], 'input_reference.png', { type: params.image.mime_type });
+
+    formData.append('input_reference', file);
+
+    const response = await fetch('/api/openai', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create video job');
+    }
+
+    const data = await response.json();
+    return { jobId: data.id };
+  }
+
+  // No image - use JSON request
   const requestBody: any = {
     model: params.model,
     prompt: params.prompt,
-    size: params.resolution,  // OpenAI uses 'size' not 'resolution'
-    seconds: params.duration.toString(),  // OpenAI uses 'seconds' as string
+    size: params.resolution,
+    seconds: params.duration.toString(),
   };
 
-  // Add image if provided (as input_reference)
-  if (params.image) {
-    requestBody.input_reference = params.image;
-  }
-
-  // OpenAI Sora 2 API uses /videos endpoint
   const response = await apiRequest<{ id: string }>('/videos', {
     method: 'POST',
     body: requestBody,
