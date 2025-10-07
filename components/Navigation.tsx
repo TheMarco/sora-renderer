@@ -59,6 +59,20 @@ export function Navigation() {
             >
               <span className="text-xl">⚙️</span>
             </Link>
+
+            {/* About Link */}
+            <Link
+              href="/about"
+              className={cn(
+                'px-4 py-2 rounded-lg font-medium transition-all duration-200',
+                'hover:bg-surface-hover',
+                pathname === '/about' && 'bg-surface text-text-primary',
+                pathname !== '/about' && 'text-text-secondary'
+              )}
+              aria-label="About"
+            >
+              <span className="text-xl">ℹ️</span>
+            </Link>
           </div>
         </div>
       </div>
