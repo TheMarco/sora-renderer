@@ -7,6 +7,7 @@ import { Navigation } from '@/components/Navigation';
 import { Modal } from '@/components/Modal';
 import { showToast } from '@/components/Toast';
 import { PromptEditor } from '@/components/render/PromptEditor';
+import { PromptExamples } from '@/components/render/PromptExamples';
 import { ModelPicker } from '@/components/render/ModelPicker';
 import { ResolutionPicker } from '@/components/render/ResolutionPicker';
 import { DurationSlider } from '@/components/render/DurationSlider';
@@ -159,13 +160,15 @@ export default function NewRenderPage() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-3xl font-bold mb-8">New Render</h1>
 
-        <div className="space-y-6">
-          {/* Prompt Editor */}
-          <section className="glass-card p-6">
-            <PromptEditor value={prompt} onChange={setPrompt} />
-          </section>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Main Form */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Prompt Editor */}
+            <section className="glass-card p-6">
+              <PromptEditor value={prompt} onChange={setPrompt} />
+            </section>
 
-          {/* Image Upload */}
+            {/* Image Upload */}
           <section>
             <ImageDropZone
               onImageSelect={handleImageSelect}
@@ -236,6 +239,12 @@ export default function NewRenderPage() {
               restricted.
             </p>
           </section>
+          </div>
+
+          {/* Right Column - Examples & Tips */}
+          <div className="lg:col-span-1 space-y-6">
+            <PromptExamples onUseExample={setPrompt} />
+          </div>
         </div>
       </main>
 

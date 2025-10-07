@@ -56,7 +56,8 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 flex items-center justify-center p-4 animate-fade-in"
+      style={{ zIndex: 99999 }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -64,7 +65,7 @@ export function Modal({
       }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" style={{ zIndex: -1 }} />
 
       {/* Modal */}
       <div
@@ -73,6 +74,7 @@ export function Modal({
           'relative w-full glass-card p-6 animate-slide-up',
           sizeClasses[size]
         )}
+        style={{ zIndex: 1 }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
