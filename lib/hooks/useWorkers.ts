@@ -67,7 +67,9 @@ export function usePollingWorker() {
 
   const handlePollRequest = async (payload: { jobId: string; apiJobId: string }) => {
     try {
+      console.log(`[useWorkers] Polling API for job ${payload.apiJobId}`);
       const response = await getVideoJob(payload.apiJobId);
+      console.log(`[useWorkers] API response:`, response);
 
       // Send response back to worker
       workerRef.current?.postMessage({

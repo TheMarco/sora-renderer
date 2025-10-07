@@ -180,9 +180,31 @@ function JobCard({
   onRetry: (job: RenderJob) => void;
   onDelete: (id: string) => void;
 }) {
+  const [lastChecked, setLastChecked] = useState<number>(Date.now());
+  const [isChecking, setIsChecking] = useState(false);
+
   const isActive = job.status === 'queued' || job.status === 'running';
   const isFailed = job.status === 'failed' || job.status === 'blocked';
   const isComplete = job.status === 'succeeded';
+
+  // Update last checked time when job updates
+  useEffect(() => {
+    setLastChecked(Date.now());
+  }, [job.status, job.updatedAt]);
+
+  const handleCheckStatus = async () => {
+    setIsChecking(true);
+    try {
+      // Force a refresh by updating the job's updatedAt
+      await db.jobs.update(job.id, { updatedAt: Date.now() });
+      setLastChecked(Date.now());
+      showToast('Checking status...', 'info');
+    } catch (error) {
+      showToast('Failed to check status', 'error');
+    } finally {
+      setTimeout(() => setIsChecking(false), 1000);
+    }
+  };
 
   return (
     <div className="glass-card p-5">
@@ -210,6 +232,14 @@ function JobCard({
           {isActive && (
             <>
               <LoadingSpinner size="sm" />
+              <button
+                onClick={handleCheckStatus}
+                disabled={isChecking}
+                className="btn-ghost text-xs"
+                title="Manually check job status"
+              >
+                {isChecking ? '...' : '🔄'}
+              </button>
               <button onClick={() => onCancel(job.id)} className="btn-secondary text-sm">
                 Cancel
               </button>

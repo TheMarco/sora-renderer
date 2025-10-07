@@ -13,7 +13,7 @@
   export const MIN_DURATION = 1;
   export const MAX_DURATION = 20;
   export const DEFAULT_DURATION = 5;
-  
+
   // NEW:
   export const ALLOWED_DURATIONS = [4, 8, 12] as const;
   export const DEFAULT_DURATION = 4;
@@ -25,7 +25,15 @@
   - Clear visual feedback for selected duration
   - Helpful labels for each option
 
-### 2. ✅ Updated API Request Structure
+### 2. ✅ Updated API Endpoints
+
+**Problem**: The API was using `/v1/video/generations` but OpenAI Sora 2 uses `/v1/videos`.
+
+**Changes**:
+- Create job: `/video/generations` → `/videos`
+- Get job status: `/video/generations/{id}` → `/videos/{id}`
+
+### 3. ✅ Updated API Request Structure
 
 **Problem**: The API request structure was based on a spec that didn't match the actual OpenAI Sora 2 API.
 
@@ -45,14 +53,25 @@
   }
 }
 
-// NEW structure (matches OpenAI API):
+// NEW structure (matches OpenAI SDK):
 {
   model: 'sora-2',
   prompt: '...',
-  resolution: '1280x720',
-  duration: 4,  // Must be 4, 8, or 12
-  image?: { ... }
+  size: '1280x720',        // 'size' not 'resolution'
+  seconds: '4',            // 'seconds' as string, not 'duration' as number
+  input_reference?: { ... } // 'input_reference' not 'image'
 }
+```
+
+**Endpoint Changes**:
+```typescript
+// OLD:
+POST /v1/video/generations
+GET /v1/video/generations/{id}
+
+// NEW:
+POST /v1/videos
+GET /v1/videos/{id}
 ```
 
 **Response Handling**:

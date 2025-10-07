@@ -73,6 +73,8 @@ async function pollJob(jobId: string) {
   if (!job) return;
 
   try {
+    console.log(`[Poller] Polling job ${jobId} (API ID: ${job.apiJobId}), interval: ${job.interval}ms`);
+
     // Send poll request to main thread (which has access to the API key)
     self.postMessage({
       type: 'POLL_REQUEST',
@@ -86,7 +88,7 @@ async function pollJob(jobId: string) {
     // Schedule next poll
     scheduleNextPoll(jobId);
   } catch (error) {
-    console.error('Polling error:', error);
+    console.error('[Poller] Polling error:', error);
 
     // Notify main thread of error
     self.postMessage({
@@ -113,8 +115,11 @@ self.addEventListener('message', (event: MessageEvent) => {
 function handlePollResponse(payload: any) {
   const { jobId, status, assets, error } = payload;
 
+  console.log(`[Poller] Job ${jobId} status: ${status}`);
+
   // If job is complete or failed, stop polling
   if (status === 'succeeded' || status === 'failed' || status === 'blocked' || status === 'canceled') {
+    console.log(`[Poller] Job ${jobId} finished with status: ${status}`);
     stopPolling(jobId);
 
     // Notify main thread
@@ -123,6 +128,7 @@ function handlePollResponse(payload: any) {
       payload: { jobId, status, assets, error },
     });
   } else {
+    console.log(`[Poller] Job ${jobId} still in progress: ${status}`);
     // Job still in progress, notify main thread of status update
     self.postMessage({
       type: 'JOB_UPDATE',
