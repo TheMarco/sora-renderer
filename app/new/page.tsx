@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import { Navigation } from '@/components/Navigation';
@@ -18,6 +18,7 @@ import { fileToBase64 } from '@/lib/utils';
 import { estimateCostUsd } from '@/lib/cost';
 import { useAppStore } from '@/lib/store';
 import { DEFAULT_DURATION } from '@/lib/constants';
+import { resizeImageToResolution } from '@/lib/imageUtils';
 import type { ModelId, Resolution, RenderJob } from '@/lib/types';
 
 export default function NewRenderPage() {
@@ -29,18 +30,48 @@ export default function NewRenderPage() {
   const [resolution, setResolution] = useState<Resolution>('1280x720');
   const [duration, setDuration] = useState(DEFAULT_DURATION);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [originalImage, setOriginalImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResizingImage, setIsResizingImage] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+
+  const resizeImage = useCallback(async (file: File) => {
+    setIsResizingImage(true);
+    try {
+      const resized = await resizeImageToResolution(file, resolution);
+      setSelectedImage(resized);
+      showToast(`Image resized to ${resolution}`, 'info');
+    } catch (error) {
+      console.error('Failed to resize image:', error);
+      showToast('Failed to resize image', 'error');
+      setSelectedImage(null);
+      setOriginalImage(null);
+    } finally {
+      setIsResizingImage(false);
+    }
+  }, [resolution]);
 
   useEffect(() => {
     checkFirstRun();
   }, []);
+
+  // Auto-resize image when resolution changes
+  useEffect(() => {
+    if (originalImage) {
+      resizeImage(originalImage);
+    }
+  }, [resolution, originalImage, resizeImage]);
 
   const checkFirstRun = async () => {
     const vault = await db.keyvault.get('openai');
     if (!vault) {
       setShowWelcome(true);
     }
+  };
+
+  const handleImageSelect = async (file: File) => {
+    setOriginalImage(file);
+    // Resize will happen automatically via useEffect
   };
 
   const handleSubmit = async () => {
@@ -137,9 +168,14 @@ export default function NewRenderPage() {
           {/* Image Upload */}
           <section>
             <ImageDropZone
-              onImageSelect={setSelectedImage}
+              onImageSelect={handleImageSelect}
               selectedImage={selectedImage}
-              onClear={() => setSelectedImage(null)}
+              onClear={() => {
+                setSelectedImage(null);
+                setOriginalImage(null);
+              }}
+              targetResolution={resolution}
+              isProcessing={isResizingImage}
             />
           </section>
 

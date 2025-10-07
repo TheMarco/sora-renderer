@@ -4,14 +4,23 @@ import { useCallback, useState } from 'react';
 import { MAX_IMAGE_SIZE, SUPPORTED_IMAGE_TYPES } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
 import { showToast } from '@/components/Toast';
+import type { Resolution } from '@/lib/types';
 
 interface ImageDropZoneProps {
   onImageSelect: (file: File) => void;
   selectedImage: File | null;
   onClear: () => void;
+  targetResolution?: Resolution;
+  isProcessing?: boolean;
 }
 
-export function ImageDropZone({ onImageSelect, selectedImage, onClear }: ImageDropZoneProps) {
+export function ImageDropZone({
+  onImageSelect,
+  selectedImage,
+  onClear,
+  targetResolution,
+  isProcessing = false
+}: ImageDropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -94,8 +103,19 @@ export function ImageDropZone({ onImageSelect, selectedImage, onClear }: ImageDr
           <div className="flex-1">
             <h4 className="font-medium text-text-primary mb-1">Reference Image</h4>
             <p className="text-sm text-text-secondary mb-2">{selectedImage.name}</p>
-            <p className="text-xs text-text-tertiary">{formatBytes(selectedImage.size)}</p>
-            <button onClick={handleClear} className="btn-secondary mt-3 text-sm">
+            <div className="space-y-1">
+              <p className="text-xs text-text-tertiary">{formatBytes(selectedImage.size)}</p>
+              {targetResolution && (
+                <p className="text-xs text-text-tertiary">
+                  Resized to {targetResolution} to match video resolution
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleClear}
+              className="btn-secondary mt-3 text-sm"
+              disabled={isProcessing}
+            >
               Remove Image
             </button>
           </div>
@@ -109,8 +129,12 @@ export function ImageDropZone({ onImageSelect, selectedImage, onClear }: ImageDr
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      className={`glass-card p-8 border-2 border-dashed transition-all cursor-pointer ${
-        isDragging ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/50'
+      className={`glass-card p-8 border-2 border-dashed transition-all ${
+        isProcessing
+          ? 'border-accent bg-accent/10 cursor-wait'
+          : isDragging
+            ? 'border-accent bg-accent/10 cursor-pointer'
+            : 'border-border hover:border-accent/50 cursor-pointer'
       }`}
     >
       <input
@@ -119,16 +143,26 @@ export function ImageDropZone({ onImageSelect, selectedImage, onClear }: ImageDr
         onChange={handleFileInput}
         className="hidden"
         id="image-input"
+        disabled={isProcessing}
       />
-      <label htmlFor="image-input" className="cursor-pointer block text-center">
-        <div className="text-4xl mb-3">🖼️</div>
-        <h4 className="font-medium text-text-primary mb-2">Add Reference Image (Optional)</h4>
+      <label htmlFor="image-input" className={`block text-center ${isProcessing ? 'cursor-wait' : 'cursor-pointer'}`}>
+        <div className="text-4xl mb-3">{isProcessing ? '⏳' : '🖼️'}</div>
+        <h4 className="font-medium text-text-primary mb-2">
+          {isProcessing ? 'Resizing Image...' : 'Add Reference Image (Optional)'}
+        </h4>
         <p className="text-sm text-text-secondary mb-1">
-          Drag and drop or click to select
+          {isProcessing ? 'Please wait' : 'Drag and drop or click to select'}
         </p>
-        <p className="text-xs text-text-tertiary">
-          PNG, JPEG, or WebP • Max {formatBytes(MAX_IMAGE_SIZE)}
-        </p>
+        <div className="space-y-1">
+          <p className="text-xs text-text-tertiary">
+            PNG, JPEG, or WebP • Max {formatBytes(MAX_IMAGE_SIZE)}
+          </p>
+          {targetResolution && !isProcessing && (
+            <p className="text-xs text-accent">
+              Will be automatically resized to {targetResolution}
+            </p>
+          )}
+        </div>
       </label>
     </div>
   );
