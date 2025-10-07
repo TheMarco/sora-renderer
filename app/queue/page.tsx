@@ -302,9 +302,24 @@ function JobCard({
         </div>
       </div>
 
-      {job.error && (
-        <div className="mt-3 p-3 bg-error/10 border border-error/30 rounded text-sm text-error">
-          {job.error}
+      {/* Show error message for failed jobs */}
+      {isFailed && (
+        <div className="mt-3 p-3 bg-error/10 border border-error/30 rounded text-sm">
+          <div className="flex items-start space-x-2">
+            <span className="text-error">⚠️</span>
+            <div className="flex-1">
+              <div className="font-medium text-error mb-1">
+                {job.status === 'blocked' ? 'Content Blocked' : 'Generation Failed'}
+              </div>
+              <div className="text-text-secondary">
+                {job.error || (
+                  job.status === 'blocked'
+                    ? 'Your prompt was blocked by content safety filters. Please try a different prompt.'
+                    : 'The video generation failed. This could be due to content policy violations, technical issues, or invalid parameters. Please try again with a different prompt or settings.'
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -2,6 +2,10 @@
 
 A local-first, privacy-focused web application for generating videos using OpenAI's Sora 2 and Sora 2 Pro models.
 
+**Create stunning AI videos directly in your browser with complete privacy and control.**
+
+Sora Renderer is a modern web application that lets you generate videos using OpenAI's powerful Sora 2 models. Unlike cloud-based solutions, all your data—API keys, videos, and metadata—stays on your device. No servers, no tracking, no compromises.
+
 ## Features
 
 - 🎬 **Video Generation**: Create videos from text prompts or text + image inputs
@@ -52,18 +56,61 @@ npm run dev
 
 ### Deploy to Vercel (Recommended)
 
-The easiest way to deploy is using Vercel:
+Vercel is the easiest and fastest way to deploy Sora Renderer. It's free for personal projects and takes just a few minutes.
 
-```bash
-npm install -g vercel
-vercel
-```
+#### Option 1: One-Click Deploy
 
-Or click this button:
+Click this button to deploy directly to Vercel:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TheMarco/sora-renderer)
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+This will:
+1. Fork the repository to your GitHub account
+2. Create a new Vercel project
+3. Deploy the application automatically
+4. Give you a live URL (e.g., `your-app.vercel.app`)
+
+#### Option 2: Manual Deploy via CLI
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy from your local repository
+vercel
+```
+
+Follow the prompts to link your project and deploy.
+
+#### Option 3: Deploy via Vercel Dashboard
+
+1. Go to [vercel.com](https://vercel.com) and sign in
+2. Click **"Add New Project"**
+3. Import your GitHub repository
+4. Vercel will auto-detect Next.js settings
+5. Click **"Deploy"**
+
+#### Post-Deployment Setup
+
+After deployment:
+
+1. Visit your deployed URL
+2. Click the **Settings** (⚙️) icon in the navigation
+3. Enter your OpenAI API key
+4. Start generating videos!
+
+**Note**: Your API key is encrypted and stored only in your browser's local storage. It never touches Vercel's servers.
+
+#### Vercel Configuration
+
+No environment variables or build configuration needed! The app works out of the box on Vercel with:
+
+- **Framework Preset**: Next.js
+- **Build Command**: `npm run build` (auto-detected)
+- **Output Directory**: `.next` (auto-detected)
+- **Node Version**: 20.x (recommended)
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for advanced deployment options and troubleshooting.
 
 ### First-Time Setup
 
@@ -154,7 +201,7 @@ Sora 2 and Sora 2 Pro pricing (as of implementation):
 
 ## Limitations
 
-- Maximum video duration: 20 seconds
+- Maximum video duration: 12 seconds (OpenAI Sora 2 API limit)
 - Browser storage limits apply (typically 50-100GB)
 - No cloud sync or multi-device support
 - No server-side processing
@@ -173,7 +220,34 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License
+
+Copyright (c) 2025 Marco van Hylckama Vlieg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## Author
+
+**Marco van Hylckama Vlieg**
+
+- Website: [ai-created.com](https://ai-created.com/)
+- X/Twitter: [@AIandDesign](https://x.com/AIandDesign)
 
 ## Acknowledgments
 

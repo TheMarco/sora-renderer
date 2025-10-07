@@ -152,6 +152,25 @@ export async function getVideoJob(jobId: string): Promise<VideoJobResponse> {
     method: 'GET',
   });
 
+  console.log('[OpenAI] Full job response:', JSON.stringify(response, null, 2));
+
+  // Extract error message from various possible locations
+  let errorMessage: string | undefined;
+  if (response.error) {
+    // Try different error formats
+    errorMessage = response.error.message || response.error.code || response.error;
+    if (typeof errorMessage === 'object') {
+      errorMessage = JSON.stringify(errorMessage);
+    }
+  } else if (response.failure_reason) {
+    errorMessage = response.failure_reason;
+  } else if (response.status === 'failed' || response.status === 'blocked') {
+    // If status is failed/blocked but no error message, provide a generic one
+    errorMessage = response.status === 'blocked'
+      ? 'Content blocked by safety filters'
+      : 'Generation failed - please check your prompt and try again';
+  }
+
   return {
     job_id: response.id || jobId,
     status: mapApiStatus(response.status),
@@ -159,7 +178,7 @@ export async function getVideoJob(jobId: string): Promise<VideoJobResponse> {
       url: item.url,
       mime: 'video/mp4',
     })),
-    error: response.error?.message,
+    error: errorMessage,
   };
 }
 

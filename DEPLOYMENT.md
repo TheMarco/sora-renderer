@@ -319,7 +319,7 @@ If a deployment has issues:
 Add this to your GitHub README for one-click deployment:
 
 ```markdown
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/sora-renderer)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TheMarco/sora-renderer)
 ```
 
 ---
@@ -327,4 +327,10 @@ Add this to your GitHub README for one-click deployment:
 **Status**: Ready to deploy! 🚀
 
 The CORS issue is resolved, and the app is fully configured for Vercel deployment.
+
+## Credits
+
+Created by **Marco van Hylckama Vlieg**
+- Website: [ai-created.com](https://ai-created.com/)
+- X/Twitter: [@AIandDesign](https://x.com/AIandDesign)
 
