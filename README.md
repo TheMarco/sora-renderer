@@ -50,6 +50,21 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
+### Deploy to Vercel (Recommended)
+
+The easiest way to deploy is using Vercel:
+
+```bash
+npm install -g vercel
+vercel
+```
+
+Or click this button:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TheMarco/sora-renderer)
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+
 ### First-Time Setup
 
 1. On first launch, you'll see a welcome modal
