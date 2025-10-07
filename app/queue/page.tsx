@@ -8,7 +8,7 @@ import { showToast } from '@/components/Toast';
 import { db } from '@/lib/db';
 import { formatRelativeTime, formatCost } from '@/lib/utils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/constants';
-import type { RenderJob } from '@/lib/types';
+import type { RenderJob, Asset } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
 export default function QueuePage() {
@@ -180,26 +180,34 @@ function JobCard({
   onRetry: (job: RenderJob) => void;
   onDelete: (id: string) => void;
 }) {
-  const [lastChecked, setLastChecked] = useState<number>(Date.now());
   const [isChecking, setIsChecking] = useState(false);
+  const [videoAsset, setVideoAsset] = useState<Asset | null>(null);
 
   const isActive = job.status === 'queued' || job.status === 'running';
   const isFailed = job.status === 'failed' || job.status === 'blocked';
   const isComplete = job.status === 'succeeded';
 
-  // Update last checked time when job updates
+  // Load video asset for completed jobs
   useEffect(() => {
-    setLastChecked(Date.now());
-  }, [job.status, job.updatedAt]);
+    if (isComplete) {
+      const loadAsset = async () => {
+        const assets = await db.assets.where('jobId').equals(job.id).toArray();
+        const video = assets.find(a => a.kind === 'video');
+        if (video) {
+          setVideoAsset(video);
+        }
+      };
+      loadAsset();
+    }
+  }, [isComplete, job.id]);
 
   const handleCheckStatus = async () => {
     setIsChecking(true);
     try {
       // Force a refresh by updating the job's updatedAt
       await db.jobs.update(job.id, { updatedAt: Date.now() });
-      setLastChecked(Date.now());
       showToast('Checking status...', 'info');
-    } catch (error) {
+    } catch {
       showToast('Failed to check status', 'error');
     } finally {
       setTimeout(() => setIsChecking(false), 1000);
@@ -269,10 +277,19 @@ function JobCard({
         </div>
       )}
 
-      {isActive && (
-        <div className="mt-3">
-          <div className="h-1 bg-surface rounded-full overflow-hidden">
-            <div className="h-full bg-accent animate-pulse-slow w-1/3" />
+      {/* Show video player for completed jobs */}
+      {isComplete && videoAsset && (
+        <div className="mt-4">
+          <video
+            src={URL.createObjectURL(videoAsset.blob)}
+            controls
+            className="w-full rounded-lg"
+            autoPlay
+            loop
+          />
+          <div className="mt-2 flex items-center justify-between text-xs text-text-tertiary">
+            <span>{videoAsset.name}</span>
+            <span>{(videoAsset.bytes / 1024 / 1024).toFixed(2)} MB</span>
           </div>
         </div>
       )}
