@@ -82,51 +82,48 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
 }
 
 /**
- * Create a video generation job (text-only)
+ * Create a video generation job
  */
 export async function createVideoJob(
   params: CreateVideoJobParams
 ): Promise<{ jobId: string }> {
   const requestBody: any = {
     model: params.model,
-    input: {
-      type: 'video.generate',
-      prompt: params.prompt,
-      resolution: params.resolution,
-      duration: params.duration,
-    },
+    prompt: params.prompt,
+    resolution: params.resolution,
+    duration: params.duration,
   };
 
   // Add image if provided
   if (params.image) {
-    requestBody.input.image = params.image;
+    requestBody.image = params.image;
   }
 
-  // Note: This endpoint structure is based on the spec.
-  // The actual OpenAI Sora API endpoint may differ.
-  // Adjust this when the real API is available.
-  const response = await apiRequest<{ job_id: string }>('/video/generations', {
+  // OpenAI Sora 2 API endpoint
+  const response = await apiRequest<{ id: string }>('/video/generations', {
     method: 'POST',
     body: requestBody,
   });
 
-  return { jobId: response.job_id };
+  return { jobId: response.id };
 }
 
 /**
  * Get the status of a video generation job
  */
 export async function getVideoJob(jobId: string): Promise<VideoJobResponse> {
-  // Note: Adjust endpoint when real API is available
   const response = await apiRequest<any>(`/video/generations/${jobId}`, {
     method: 'GET',
   });
 
   return {
-    job_id: response.job_id || jobId,
+    job_id: response.id || jobId,
     status: mapApiStatus(response.status),
-    assets: response.assets,
-    error: response.error,
+    assets: response.output?.map((item: any) => ({
+      url: item.url,
+      mime: 'video/mp4',
+    })),
+    error: response.error?.message,
   };
 }
 

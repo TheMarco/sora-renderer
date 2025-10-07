@@ -57,10 +57,9 @@ export const RESOLUTIONS: ResolutionOption[] = [
   },
 ];
 
-// Duration constraints
-export const MIN_DURATION = 1;
-export const MAX_DURATION = 20;
-export const DEFAULT_DURATION = 5;
+// Duration constraints - Sora 2 only supports 4, 8, and 12 seconds
+export const ALLOWED_DURATIONS = [4, 8, 12] as const;
+export const DEFAULT_DURATION = 4;
 
 // Polling configuration
 export const DEFAULT_POLLING_INTERVAL = 2500; // ms
