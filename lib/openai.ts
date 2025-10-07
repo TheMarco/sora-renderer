@@ -90,17 +90,17 @@ export async function createVideoJob(
   const requestBody: any = {
     model: params.model,
     prompt: params.prompt,
-    resolution: params.resolution,
-    duration: params.duration,
+    size: params.resolution,  // OpenAI uses 'size' not 'resolution'
+    seconds: params.duration.toString(),  // OpenAI uses 'seconds' as string
   };
 
-  // Add image if provided
+  // Add image if provided (as input_reference)
   if (params.image) {
-    requestBody.image = params.image;
+    requestBody.input_reference = params.image;
   }
 
-  // OpenAI Sora 2 API endpoint
-  const response = await apiRequest<{ id: string }>('/video/generations', {
+  // OpenAI Sora 2 API uses /videos endpoint
+  const response = await apiRequest<{ id: string }>('/videos', {
     method: 'POST',
     body: requestBody,
   });
@@ -112,7 +112,8 @@ export async function createVideoJob(
  * Get the status of a video generation job
  */
 export async function getVideoJob(jobId: string): Promise<VideoJobResponse> {
-  const response = await apiRequest<any>(`/video/generations/${jobId}`, {
+  // OpenAI Sora 2 API uses /videos/{id} endpoint
+  const response = await apiRequest<any>(`/videos/${jobId}`, {
     method: 'GET',
   });
 
